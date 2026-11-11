@@ -1,0 +1,29 @@
+# Secrets — never commit these. Ever.
+# (application-prod.properties is intentionally committed: it holds only
+# ${...} placeholders, no real values — Render supplies the real values.)
+.env
+*.pem
+*.key
+
+# Build output and IDE files
+target/
+node_modules/
+dist/
+.idea/
+*.iml
+.DS_Store
+
+# Local environment files (frontend .env is covered by .env above)
+frontend/.env
+backend/.env
+
+# Maven wrapper / build
+.mvn/
+mvnw
+mvnw.cmd
+
+# OS / editor
+.DS_Store
+.idea/
+*.iml
+.vscode/
