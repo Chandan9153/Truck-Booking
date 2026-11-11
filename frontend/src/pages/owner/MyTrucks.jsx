@@ -5,7 +5,7 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import ErrorBox from "../../components/ErrorBox";
 import EmptyState from "../../components/EmptyState";
 
-const BODY_TYPES = ["OPEN", "CLOSED", "REFRIGERATED", "TANKER", "FLATBED"];
+const BODY_TYPES = ["OPEN", "CLOSED_CONTAINER", "FLATBED", "TRAILER", "REFRIGERATED"];
 // ⚠️ Match these names to your Module 2 BodyType enum (see Home.jsx note).
 
 export default function MyTrucks() {

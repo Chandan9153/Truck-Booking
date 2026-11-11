@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { fetchCategories } from "../../services/truckService";
 import ErrorBox from "../../components/ErrorBox";
 
-const BODY_TYPES = ["", "OPEN", "CLOSED", "REFRIGERATED", "TANKER", "FLATBED"];
-// ⚠️ If your Module 2 BodyType enum uses different names, change this list
-//    to match it exactly — the backend rejects unknown values with a 400.
+// Must match the backend BodyType enum EXACTLY (Module 2). The old list
+// had CLOSED and TANKER, which the backend does not have — choosing them
+// made truck registration fail with a 500 error.
+const BODY_TYPES = ["", "OPEN", "CLOSED_CONTAINER", "FLATBED", "TRAILER", "REFRIGERATED"];
 
 export default function Home() {
   const navigate = useNavigate();
@@ -55,14 +56,43 @@ export default function Home() {
   const label = "text-sm font-medium";
   const errText = "mt-1 text-sm text-red-600";
 
+  // Per-ton-per-km rates from the live rate table (Module 3, seeded).
+  const RATE_BY_TYRES = { 12: "₹2.70", 14: "₹2.60", 18: "₹2.50", 22: "₹2.40" };
+  const BODY_LABELS = {
+    OPEN: "Open",
+    CLOSED_CONTAINER: "Closed Container",
+    FLATBED: "Flatbed",
+    TRAILER: "Trailer",
+    REFRIGERATED: "Refrigerated",
+  };
+
   return (
     <div>
-      <h1 className="text-3xl font-bold">Book a truck across India</h1>
-      <p className="mt-1 text-gray-600">
-        Tell us your load and route. We show the cheapest trucks first, with every rupee explained — no hidden charges.
-      </p>
+      {/* Hero */}
+      <section className="rounded-2xl bg-gradient-to-r from-blue-800 via-blue-700 to-blue-600 px-6 py-10 text-white shadow md:px-10">
+        <p className="text-sm font-semibold uppercase tracking-wider text-blue-200">
+          Truck Booking • All India
+        </p>
+        <h1 className="mt-2 max-w-2xl text-3xl font-extrabold leading-tight md:text-4xl">
+          Book a truck across India — in minutes, not days.
+        </h1>
+        <p className="mt-3 max-w-2xl text-blue-100">
+          Full truck loads with upfront fares and every rupee explained.
+          No hidden charges, no waiting for a price call-back.
+        </p>
+        <div className="mt-5 flex flex-wrap gap-2 text-sm">
+          <span className="rounded-full bg-white/15 px-3 py-1">₹0 platform fee</span>
+          <span className="rounded-full bg-white/15 px-3 py-1">Instant booking</span>
+          <span className="rounded-full bg-white/15 px-3 py-1">Cheapest truck first</span>
+          <span className="rounded-full bg-white/15 px-3 py-1">Call or chat the owner</span>
+        </div>
+      </section>
 
-      <form onSubmit={handleSubmit} className="mt-6 rounded border bg-white p-6 shadow-sm">
+      <form onSubmit={handleSubmit} className="mt-6 rounded-xl border bg-white p-6 shadow">
+        <h2 className="text-lg font-bold">Find your truck</h2>
+        <p className="mt-1 text-sm text-gray-600">
+          Tell us your load and route. We show the cheapest trucks first, with every rupee explained.
+        </p>
         <ErrorBox message={error} />
         <div className="grid gap-4 md:grid-cols-2">
           <div>
@@ -94,7 +124,7 @@ export default function Home() {
             <label className={label}>Body type</label>
             <select value={form.bodyType} onChange={(e) => update("bodyType", e.target.value)} className={input}>
               <option value="">Any body type</option>
-              {BODY_TYPES.filter(Boolean).map((b) => (<option key={b} value={b}>{b}</option>))}
+              {BODY_TYPES.filter(Boolean).map((b) => (<option key={b} value={b}>{BODY_LABELS[b] || b}</option>))}
             </select>
           </div>
           <div>
@@ -119,15 +149,64 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <button className="mt-6 w-full rounded bg-blue-600 py-3 font-medium text-white hover:bg-blue-700 md:w-auto md:px-8">
+        <button className="mt-6 w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700 md:w-auto md:px-8">
           Search trucks →
         </button>
       </form>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
-        <div className="rounded border bg-white p-4"><p className="font-semibold">Upfront fare</p><p className="text-sm text-gray-600">Every quote shows the full breakdown — base fare, toll, loading, platform fee.</p></div>
-        <div className="rounded border bg-white p-4"><p className="font-semibold">Instant booking</p><p className="text-sm text-gray-600">Book straight from a quote. No waiting for a price call-back.</p></div>
-        <div className="rounded border bg-white p-4"><p className="font-semibold">Talk to the owner</p><p className="text-sm text-gray-600">Call or chat with the truck owner after booking, from the tracking page.</p></div>
+      {/* Example fare — the standard worked example from the rate table */}
+      <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900">
+        <span className="font-semibold">Example fare: </span>
+        Bengaluru → Hyderabad • 570 km • 20 tons, 12-tyre truck — <span className="font-bold">₹33,280</span> all-in
+        (base fare + toll + loading, ₹0 platform fee). Your quote shows the same full breakdown.
+      </div>
+
+      {/* Truck categories, loaded live from the backend */}
+      {categories.length > 0 && (
+        <section className="mt-10">
+          <h2 className="text-xl font-bold">Trucks for every load</h2>
+          <p className="mt-1 text-sm text-gray-600">Four truck sizes, priced per ton per km. Pick a category or leave it on “Any”.</p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {categories.map((c) => (
+              <div key={c.id} className="rounded-xl border bg-white p-4 shadow-sm">
+                <p className="text-3xl font-extrabold text-blue-700">{c.tyreCount} <span className="text-base font-semibold">tyre</span></p>
+                <p className="mt-1 font-semibold">{c.name}</p>
+                <p className="text-sm text-gray-600">Up to {c.targetPayloadTons} tons</p>
+                <p className="mt-2 text-sm font-semibold text-green-700">
+                  {RATE_BY_TYRES[c.tyreCount] || ""} / ton / km
+                </p>
+                {c.description && <p className="mt-1 text-xs text-gray-500">{c.description}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* How it works */}
+      <section className="mt-10">
+        <h2 className="text-xl font-bold">How it works</h2>
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <div className="rounded-xl border bg-white p-5 shadow-sm"><p className="text-2xl font-extrabold text-blue-700">1</p><p className="mt-2 font-semibold">Search your route</p><p className="text-sm text-gray-600">Enter pickup, destination, distance and load. See the cheapest trucks first with the full fare breakdown.</p></div>
+          <div className="rounded-xl border bg-white p-5 shadow-sm"><p className="text-2xl font-extrabold text-blue-700">2</p><p className="mt-2 font-semibold">Book instantly</p><p className="text-sm text-gray-600">Book straight from a quote at the shown price. Pay cash on delivery — no advance needed.</p></div>
+          <div className="rounded-xl border bg-white p-5 shadow-sm"><p className="text-2xl font-extrabold text-blue-700">3</p><p className="mt-2 font-semibold">Track &amp; talk</p><p className="text-sm text-gray-600">Follow the trip from pickup to delivery, and call or chat with the truck owner any time.</p></div>
+        </div>
+      </section>
+
+      {/* Popular routes — examples only, fares depend on load and distance */}
+      <section className="mt-10">
+        <h2 className="text-xl font-bold">Popular routes</h2>
+        <p className="mt-1 text-sm text-gray-600">Search any route in India — here are a few to start with.</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {["Bengaluru → Hyderabad", "Bengaluru → Chennai", "Mumbai → Pune", "Delhi → Jaipur", "Hyderabad → Vijayawada", "Chennai → Coimbatore"].map((r) => (
+            <span key={r} className="rounded-full border bg-white px-4 py-2 text-sm shadow-sm">{r}</span>
+          ))}
+        </div>
+      </section>
+
+      <div className="mt-10 grid gap-4 md:grid-cols-3">
+        <div className="rounded-xl border bg-white p-4 shadow-sm"><p className="font-semibold">Upfront fare</p><p className="text-sm text-gray-600">Every quote shows the full breakdown — base fare, toll, loading, platform fee.</p></div>
+        <div className="rounded-xl border bg-white p-4 shadow-sm"><p className="font-semibold">Instant booking</p><p className="text-sm text-gray-600">Book straight from a quote. No waiting for a price call-back.</p></div>
+        <div className="rounded-xl border bg-white p-4 shadow-sm"><p className="font-semibold">Talk to the owner</p><p className="text-sm text-gray-600">Call or chat with the truck owner after booking, from the tracking page.</p></div>
       </div>
     </div>
   );

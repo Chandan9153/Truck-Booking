@@ -25,7 +25,8 @@ export async function setTruckAvailability(truckId, availabilityStatus) {
 }
 
 // Categories for the search form and the add-truck form (12/20t, 14/25t, 18/30t, 22/36t).
+// Public endpoint (GET /api/truck-categories) — no login needed.
 export async function fetchCategories() {
-  const res = await api.get("/trucks/categories");
+  const res = await api.get("/truck-categories");
   return res.data;
 }

@@ -46,6 +46,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/register",
                         "/api/auth/login", "/api/auth/refresh").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
+                // Public catalogue: anyone can see the truck categories
+                // (the search form needs them before login).
+                .requestMatchers(HttpMethod.GET, "/api/truck-categories").permitAll()
                 // Admin only (endpoints themselves come in a later module;
                 // the rule is ready now)
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

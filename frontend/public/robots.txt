@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://truck-booking-frontend-production.up.railway.app/sitemap.xml
