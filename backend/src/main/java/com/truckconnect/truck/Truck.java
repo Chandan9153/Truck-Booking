@@ -56,6 +56,7 @@ public class Truck {
     public Truck() { }
 
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     public String getRegistrationNumber() { return registrationNumber; }
     public void setRegistrationNumber(String v) { this.registrationNumber = v; }
     public TruckCategory getCategory() { return category; }
@@ -64,6 +65,10 @@ public class Truck {
     public void setTyreCount(int tyreCount) { this.tyreCount = tyreCount; }
     public BigDecimal getPermittedPayloadTons() { return permittedPayloadTons; }
     public void setPermittedPayloadTons(BigDecimal v) { this.permittedPayloadTons = v; }
+    // Alias used by Modules 3/4/9 (Search, Booking, Load Posts): the payload
+    // the owner declares the truck can carry. Same field, same column.
+    public BigDecimal getPayloadTons() { return permittedPayloadTons; }
+    public void setPayloadTons(BigDecimal v) { this.permittedPayloadTons = v; }
     public BigDecimal getGrossVehicleWeightTons() { return grossVehicleWeightTons; }
     public void setGrossVehicleWeightTons(BigDecimal v) { this.grossVehicleWeightTons = v; }
     public BodyType getBodyType() { return bodyType; }

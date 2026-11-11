@@ -177,9 +177,11 @@ public class LoadPostService {
 
         // Tag the quotes with this post (Edit A) and build the match list.
         int remaining = post.getTrucksNeeded() - countLiveBookings(post);
+        final LoadPost postForQuotes = post; // 'post' was re-read above, so it
+        // is not effectively final and cannot be used inside the lambda below.
         List<LoadPostMatchResponse.Match> matchList = quotes.stream().map(q -> {
             Quote quote = quoteRepository.findById(q.quoteId()).orElseThrow();
-            quote.setLoadPost(post);
+            quote.setLoadPost(postForQuotes);
             quoteRepository.save(quote);
             return new LoadPostMatchResponse.Match(
                     q.truckId(), q.registrationNumber(), q.categoryName(),

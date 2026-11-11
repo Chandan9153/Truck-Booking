@@ -2,16 +2,19 @@ services:
   - type: web
     name: truck-booking-backend
     runtime: java
+    rootDir: backend
     buildCommand: ./mvnw clean package -DskipTests
     startCommand: java -jar target/truck-booking-0.0.1-SNAPSHOT.jar
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
-      - key: DATABASE_URL
+      - key: JAVA_VERSION
+        value: "21"
+      - key: DB_URL
         sync: false
-      - key: DATABASE_USERNAME
+      - key: DB_USERNAME
         sync: false
-      - key: DATABASE_PASSWORD
+      - key: DB_PASSWORD
         sync: false
       - key: JWT_SECRET
         generateValue: true

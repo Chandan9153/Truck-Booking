@@ -117,6 +117,12 @@ public class Booking {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    // Module 8 assumed this field exists (the dashboard revenue query was
+    // written against updatedAt as a fallback). It records when a booking
+    // actually completed; null until then.
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
     @PrePersist
     void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -180,6 +186,9 @@ public class Booking {
     public void setCancelReason(String r) { this.cancelReason = r; }
     public String getOwnerNote() { return ownerNote; }
     public void setOwnerNote(String n) { this.ownerNote = n; }
+    public void setId(Long id) { this.id = id; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public LocalDateTime getCompletedAt() { return completedAt; }
+    public void setCompletedAt(LocalDateTime v) { this.completedAt = v; }
 }

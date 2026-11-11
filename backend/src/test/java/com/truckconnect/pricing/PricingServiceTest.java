@@ -16,7 +16,8 @@ class PricingServiceTest {
                 new BigDecimal("2.70"), new BigDecimal("1500"), new BigDecimal("1000"),
                 new BigDecimal("0"), new BigDecimal("0.50"));
 
-        assertEquals(new BigDecimal("20.00"), fare.chargeableTons());
+        assertEquals(0, new BigDecimal("20.00").compareTo(fare.chargeableTons()),
+                "chargeable tons must be 20 (scale-insensitive comparison)");
         assertFalse(fare.minimumChargeApplied());
         assertEquals(new BigDecimal("30780.00"), fare.baseFare());
         assertEquals(new BigDecimal("33280.00"), fare.totalFare());
@@ -31,7 +32,8 @@ class PricingServiceTest {
                 new BigDecimal("0"), new BigDecimal("0.50"));
 
         assertTrue(fare.minimumChargeApplied());
-        assertEquals(new BigDecimal("10.00"), fare.chargeableTons());
+        assertEquals(0, new BigDecimal("10.00").compareTo(fare.chargeableTons()),
+                "chargeable tons must be 10 (scale-insensitive comparison)");
         assertEquals(new BigDecimal("15390.00"), fare.baseFare());
         assertEquals(new BigDecimal("17890.00"), fare.totalFare());
     }

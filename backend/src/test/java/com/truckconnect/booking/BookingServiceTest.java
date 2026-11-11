@@ -1,5 +1,10 @@
 package com.truckconnect.booking;
 
+import com.truckconnect.booking.dto.CreateBookingRequest;
+import com.truckconnect.loadpost.LoadPostService;
+import com.truckconnect.quote.Quote;
+import com.truckconnect.quote.QuoteRepository;
+import com.truckconnect.truck.AvailabilityStatus;
 import com.truckconnect.truck.Truck;
 import com.truckconnect.truck.TruckRepository;
 import com.truckconnect.user.User;
@@ -8,7 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import java.util.List;
+import org.springframework.web.server.ResponseStatusException;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -17,27 +23,31 @@ import static org.mockito.Mockito.*;
 class BookingServiceTest {
 
     @Mock BookingRepository bookingRepository;
+    @Mock BookingMessageRepository messageRepository;
+    @Mock QuoteRepository quoteRepository;
     @Mock TruckRepository truckRepository;
+    @Mock LoadPostService loadPostService;
     @InjectMocks BookingService bookingService;
 
-    // Transition table: each row is (from, to, allowed?).
-    // The full allowed path is:
+    // Transition table (Module 4): each row is (from, to, allowed?).
     // PENDING -> CONFIRMED / REJECTED / CANCELLED
     // CONFIRMED -> DRIVER_ASSIGNED / CANCELLED
     // DRIVER_ASSIGNED -> PICKED_UP / CANCELLED
     // PICKED_UP -> IN_TRANSIT
     // IN_TRANSIT -> DELIVERED / DISPUTED
     // DELIVERED -> COMPLETED / DISPUTED
-    // DISPUTED -> COMPLETED / CANCELLED   (admin only, Part 5)
+    // DISPUTED -> COMPLETED / CANCELLED (admin only)
     // COMPLETED, REJECTED, CANCELLED are terminal: nothing leaves them.
+    // The service reports an invalid move as 409 CONFLICT
+    // (ResponseStatusException), not IllegalStateException.
     @Test
     void transitionTable_completedBookingCannotMove() {
         Booking booking = new Booking();
         booking.setStatus(BookingStatus.COMPLETED);
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
 
-        assertThrows(IllegalStateException.class,
-                () -> bookingService.changeStatus(1L, BookingStatus.CANCELLED, new User()));
+        assertThrows(ResponseStatusException.class,
+                () -> bookingService.updateBookingStatus(1L, BookingStatus.CANCELLED));
     }
 
     @Test
@@ -47,8 +57,8 @@ class BookingServiceTest {
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
         when(bookingRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        Booking result = bookingService.changeStatus(1L, BookingStatus.CONFIRMED, new User());
-        assertEquals(BookingStatus.CONFIRMED, result.getStatus());
+        bookingService.updateBookingStatus(1L, BookingStatus.CONFIRMED);
+        assertEquals(BookingStatus.CONFIRMED, booking.getStatus());
     }
 
     @Test
@@ -57,19 +67,31 @@ class BookingServiceTest {
         booking.setStatus(BookingStatus.PENDING);
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
 
-        assertThrows(IllegalStateException.class,
-                () -> bookingService.changeStatus(1L, BookingStatus.DELIVERED, new User()));
+        assertThrows(ResponseStatusException.class,
+                () -> bookingService.updateBookingStatus(1L, BookingStatus.DELIVERED));
     }
 
     @Test
     void noDoubleBooking_truckWithActiveBookingCannotBeBookedAgain() {
+        User customer = new User();
+        customer.setId(1L);
         Truck truck = new Truck();
         truck.setId(7L);
-        Booking active = new Booking();
-        active.setStatus(BookingStatus.CONFIRMED);
-        when(bookingRepository.findActiveByTruckId(7L)).thenReturn(List.of(active));
+        truck.setAvailabilityStatus(AvailabilityStatus.AVAILABLE);
 
-        assertThrows(IllegalStateException.class,
-                () -> bookingService.createBooking(new User(), truck, null));
+        Quote quote = new Quote();
+        quote.setId(1L);
+        quote.setCustomer(customer);
+        quote.setTruck(truck);
+        quote.setStatus("ACTIVE");
+        quote.setValidUntil(LocalDateTime.now().plusHours(1));
+
+        when(quoteRepository.findById(1L)).thenReturn(Optional.of(quote));
+        when(truckRepository.findByIdForUpdate(7L)).thenReturn(Optional.of(truck));
+        when(bookingRepository.existsByTruckIdAndStatusIn(eq(7L), any()))
+                .thenReturn(true);
+
+        assertThrows(ResponseStatusException.class,
+                () -> bookingService.createBooking(customer, new CreateBookingRequest(1L)));
     }
 }

@@ -48,6 +48,10 @@ public class User implements UserDetails {
     public void setId(Long id) { this.id = id; }
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
+    // Aliases used by the admin module: name = fullName, active = enabled.
+    public String getName() { return fullName; }
+    public boolean isActive() { return enabled; }
+    public void setActive(boolean active) { this.enabled = active; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     public String getPhone() { return phone; }

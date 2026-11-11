@@ -261,6 +261,28 @@ public class BookingService {
         return BookingMapper.toResponse(booking);
     }
 
+    // ---------- Internal hooks used by TripService (Module 5) ----------
+    // These move a booking's status without a user object: the trip service
+    // already checked that the caller is the owner/driver. They reuse the
+    // single changeStatus() rule above, so no invalid move is possible.
+
+    @Transactional
+    public void markDriverAssigned(Long bookingId) {
+        Booking booking = loadBooking(bookingId);
+        changeStatus(booking, BookingStatus.DRIVER_ASSIGNED, null, null);
+    }
+
+    @Transactional
+    public void updateBookingStatus(Long bookingId, BookingStatus to) {
+        Booking booking = loadBooking(bookingId);
+        changeStatus(booking, to, null, null);
+        if (to == BookingStatus.COMPLETED) {
+            Truck truck = booking.getTruck();
+            truck.setAvailabilityStatus(AvailabilityStatus.AVAILABLE);
+            truckRepository.save(truck);
+        }
+    }
+
     // ---------- Messages: booking chat ----------
 
     @Transactional
@@ -306,6 +328,9 @@ public class BookingService {
                     + " to " + to);
         }
         booking.setStatus(to);
+        if (to == BookingStatus.COMPLETED) {
+            booking.setCompletedAt(LocalDateTime.now());
+        }
         if (reason != null) booking.setCancelReason(reason);
         if (note != null) booking.setOwnerNote(note);
         bookingRepository.save(booking);

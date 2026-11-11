@@ -83,6 +83,7 @@ public class Quote {
 
     // Getters and setters for every field (same pattern as Module 2 entities).
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     public User getCustomer() { return customer; }
     public void setCustomer(User c) { this.customer = c; }
     public Truck getTruck() { return truck; }

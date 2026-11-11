@@ -17,10 +17,9 @@ dist/
 frontend/.env
 backend/.env
 
-# Maven wrapper / build
-.mvn/
-mvnw
-mvnw.cmd
+# Maven wrapper — MUST be committed, otherwise Render cannot run ./mvnw.
+# (These files were previously ignored here by mistake — that was the bug.)
+# No ignore rules for mvnw / mvnw.cmd / .mvn/wrapper/ — they are all committed.
 
 # OS / editor
 .DS_Store

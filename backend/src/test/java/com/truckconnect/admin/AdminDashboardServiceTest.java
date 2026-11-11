@@ -3,7 +3,7 @@ package com.truckconnect.admin;
 import com.truckconnect.admin.dto.AdminDashboardResponse;
 import com.truckconnect.booking.BookingRepository;
 import com.truckconnect.booking.BookingStatus;
-import com.truckconnect.payment.OwnerSettlementRepository;
+import com.truckconnect.settlement.OwnerSettlementRepository;
 import com.truckconnect.truck.AvailabilityStatus;
 import com.truckconnect.truck.TruckRepository;
 import com.truckconnect.user.Role;
