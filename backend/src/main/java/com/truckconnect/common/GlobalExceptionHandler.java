@@ -7,6 +7,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -38,6 +39,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                 new ApiError(401, ex.getMessage(), Map.of(),
                         LocalDateTime.now()));
+    }
+
+    // Unknown URL: answer 404, not 500. Before this handler existed, a
+    // request to a route the app does not have (e.g. a typo, or a browser
+    // asking for /favicon.ico) fell into handleOther() and came back as
+    // "500 Something went wrong", which looked like the app was broken.
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiError> handleNotFound(
+            NoResourceFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError(
+                404, "No such route: " + ex.getResourcePath(),
+                Map.of(), LocalDateTime.now()));
     }
 
     @ExceptionHandler(Exception.class)
