@@ -31,6 +31,14 @@ export async function addCategory({ name, tyreCount, targetPayloadTons }) {
   return res.data;
 }
 
+// Rate list — Module 3, confirmed (GET /api/admin/rates returns
+// id, categoryName, tyreCount, targetPayloadTons, ratePerTonKm, active).
+// This was missing: RateManagement.jsx imports it, so the build failed.
+export async function fetchRates() {
+  const res = await api.get("/admin/rates");
+  return res.data;
+}
+
 // Rate edit — Module 3, confirmed. Changing a rate affects NEW quotes only;
 // old quotes keep the rate they were calculated with.
 export async function updateRate(rateId, { ratePerTonKm, active }) {
